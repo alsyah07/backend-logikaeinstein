@@ -1,0 +1,142 @@
+{
+  "info": {
+    "_postman_id": "d9d6b1f0-6d6f-4c36-b0c1-collection-le",
+    "name": "Backend Logika Einstein API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Collection for all CRUD endpoints of Backend Logika Einstein API"
+  },
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/health", "host": ["{{baseUrl}}"], "path": ["health"] }
+      }
+    },
+    {
+      "name": "API Info",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/api", "host": ["{{baseUrl}}"], "path": ["api"] }
+      }
+    },
+
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "List Users",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/users", "host": ["{{baseUrl}}"], "path": ["api","users"] } }
+        },
+        {
+          "name": "Get User By ID",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/users/1", "host": ["{{baseUrl}}"], "path": ["api","users","1"] } }
+        },
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [ {"key":"Content-Type","value":"application/json"} ],
+            "body": { "mode": "raw", "raw": "{\n  \"username\": \"student2\",\n  \"name\": \"Student Two\",\n  \"email\": \"student2@example.com\",\n  \"password\": \"hashed_password\",\n  \"id_role\": 3\n}" },
+            "url": { "raw": "{{baseUrl}}/api/users", "host": ["{{baseUrl}}"], "path": ["api","users"] }
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [ {"key":"Content-Type","value":"application/json"} ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Student Two Updated\",\n  \"email\": \"student2u@example.com\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/users/1", "host": ["{{baseUrl}}"], "path": ["api","users","1"] }
+          }
+        },
+        {
+          "name": "Delete User",
+          "request": { "method": "DELETE", "header": [], "url": { "raw": "{{baseUrl}}/api/users/1", "host": ["{{baseUrl}}"], "path": ["api","users","1"] } }
+        },
+        {
+          "name": "Login User",
+          "request": {
+            "method": "POST",
+            "header": [ {"key":"Content-Type","value":"application/json"} ],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"student@example.com\",\n  \"password\": \"hashed_password\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/users/login", "host": ["{{baseUrl}}"], "path": ["api","users","login"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Roles",
+      "item": [
+        { "name": "List Roles", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/roles", "host": ["{{baseUrl}}"], "path": ["api","roles"] } } },
+        { "name": "Get Role By ID", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/roles/1", "host": ["{{baseUrl}}"], "path": ["api","roles","1"] } } },
+        { "name": "Create Role", "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"}], "body": {"mode":"raw","raw":"{\n  \"role\": \"teacher\",\n  \"status\": \"active\"\n}"}, "url": { "raw": "{{baseUrl}}/api/roles", "host": ["{{baseUrl}}"], "path": ["api","roles"] } } },
+        { "name": "Update Role", "request": { "method": "PUT", "header": [{"key":"Content-Type","value":"application/json"}], "body": {"mode":"raw","raw":"{\n  \"status\": \"inactive\"\n}"}, "url": { "raw": "{{baseUrl}}/api/roles/1", "host": ["{{baseUrl}}"], "path": ["api","roles","1"] } } },
+        { "name": "Delete Role", "request": { "method": "DELETE", "header": [], "url": { "raw": "{{baseUrl}}/api/roles/1", "host": ["{{baseUrl}}"], "path": ["api","roles","1"] } } }
+      ]
+    },
+
+    {
+      "name": "Mapel",
+      "item": [
+        { "name": "List Mapel", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/mapel", "host": ["{{baseUrl}}"], "path": ["api","mapel"] } } },
+        { "name": "Get Mapel By ID", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/mapel/1", "host": ["{{baseUrl}}"], "path": ["api","mapel","1"] } } },
+        { "name": "Create Mapel", "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"}], "body": {"mode":"raw","raw":"{\n  \"mapel\": \"Matematika Lanjut\",\n  \"status\": \"active\"\n}"}, "url": { "raw": "{{baseUrl}}/api/mapel", "host": ["{{baseUrl}}"], "path": ["api","mapel"] } } },
+        { "name": "Update Mapel", "request": { "method": "PUT", "header": [{"key":"Content-Type","value":"application/json"}], "body": {"mode":"raw","raw":"{\n  \"status\": \"inactive\"\n}"}, "url": { "raw": "{{baseUrl}}/api/mapel/1", "host": ["{{baseUrl}}"], "path": ["api","mapel","1"] } } },
+        { "name": "Delete Mapel", "request": { "method": "DELETE", "header": [], "url": { "raw": "{{baseUrl}}/api/mapel/1", "host": ["{{baseUrl}}"], "path": ["api","mapel","1"] } } }
+      ]
+    },
+
+    {
+      "name": "Sub Mapel",
+      "item": [
+        { "name": "List Sub Mapel", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/sub-mapel", "host": ["{{baseUrl}}"], "path": ["api","sub-mapel"] } } },
+        { "name": "Get Sub Mapel By ID", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/sub-mapel/1", "host": ["{{baseUrl}}"], "path": ["api","sub-mapel","1"] } } },
+        { "name": "Create Sub Mapel", "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"}], "body": {"mode":"raw","raw":"{\n  \"id_mapel\": 1,\n  \"sub_mapel\": \"Statistika\",\n  \"status\": \"active\"\n}"}, "url": { "raw": "{{baseUrl}}/api/sub-mapel", "host": ["{{baseUrl}}"], "path": ["api","sub-mapel"] } } },
+        { "name": "Update Sub Mapel", "request": { "method": "PUT", "header": [{"key":"Content-Type","value":"application/json"}], "body": {"mode":"raw","raw":"{\n  \"status\": \"inactive\"\n}"}, "url": { "raw": "{{baseUrl}}/api/sub-mapel/1", "host": ["{{baseUrl}}"], "path": ["api","sub-mapel","1"] } } },
+        { "name": "Delete Sub Mapel", "request": { "method": "DELETE", "header": [], "url": { "raw": "{{baseUrl}}/api/sub-mapel/1", "host": ["{{baseUrl}}"], "path": ["api","sub-mapel","1"] } } }
+      ]
+    },
+
+    {
+      "name": "Detail Video Mapel",
+      "item": [
+        { "name": "List Detail Video", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/detail-video-mapel", "host": ["{{baseUrl}}"], "path": ["api","detail-video-mapel"] } } },
+        { "name": "Get Detail Video By ID", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/detail-video-mapel/1", "host": ["{{baseUrl}}"], "path": ["api","detail-video-mapel","1"] } } },
+        { "name": "Create Detail Video", "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"}], "body": {"mode":"raw","raw":"{\n  \"id_sub_mapel\": 1,\n  \"tittle\": \"Aljabar Dasar #1\",\n  \"summary\": \"Ringkasan materi\",\n  \"banner_video\": \"https://cdn.example.com/banner.jpg\",\n  \"video_mapel\": \"https://cdn.example.com/video.mp4\",\n  \"status\": \"active\"\n}"}, "url": { "raw": "{{baseUrl}}/api/detail-video-mapel", "host": ["{{baseUrl}}"], "path": ["api","detail-video-mapel"] } } },
+        { "name": "Update Detail Video", "request": { "method": "PUT", "header": [{"key":"Content-Type","value":"application/json"}], "body": {"mode":"raw","raw":"{\n  \"summary\": \"Ringkasan update\"\n}"}, "url": { "raw": "{{baseUrl}}/api/detail-video-mapel/1", "host": ["{{baseUrl}}"], "path": ["api","detail-video-mapel","1"] } } },
+        { "name": "Delete Detail Video", "request": { "method": "DELETE", "header": [], "url": { "raw": "{{baseUrl}}/api/detail-video-mapel/1", "host": ["{{baseUrl}}"], "path": ["api","detail-video-mapel","1"] } } }
+      ]
+    },
+
+    {
+      "name": "Transactions",
+      "item": [
+        { "name": "List Transactions", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/transactions", "host": ["{{baseUrl}}"], "path": ["api","transactions"] } } },
+        { "name": "Get Transaction By ID", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/transactions/1", "host": ["{{baseUrl}}"], "path": ["api","transactions","1"] } } },
+        { "name": "Create Transaction", "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"}], "body": {"mode":"raw","raw":"{\n  \"id_detail_video_mapel\": 1,\n  \"id_users\": 1,\n  \"code_redeem\": null,\n  \"date\": \"2025-09-12\",\n  \"status\": \"pending\"\n}"}, "url": { "raw": "{{baseUrl}}/api/transactions", "host": ["{{baseUrl}}"], "path": ["api","transactions"] } } },
+        { "name": "Update Transaction", "request": { "method": "PUT", "header": [{"key":"Content-Type","value":"application/json"}], "body": {"mode":"raw","raw":"{\n  \"status\": \"completed\"\n}"}, "url": { "raw": "{{baseUrl}}/api/transactions/1", "host": ["{{baseUrl}}"], "path": ["api","transactions","1"] } } },
+        { "name": "Delete Transaction", "request": { "method": "DELETE", "header": [], "url": { "raw": "{{baseUrl}}/api/transactions/1", "host": ["{{baseUrl}}"], "path": ["api","transactions","1"] } } }
+      ]
+    },
+
+    {
+      "name": "Code Redeem",
+      "item": [
+        { "name": "List Code Redeem", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/code-redeem", "host": ["{{baseUrl}}"], "path": ["api","code-redeem"] } } },
+        { "name": "Get Code Redeem By ID", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/code-redeem/1", "host": ["{{baseUrl}}"], "path": ["api","code-redeem","1"] } } },
+        { "name": "Create Code Redeem", "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"}], "body": {"mode":"raw","raw":"{\n  \"code_redeem\": \"PROMO100\",\n  \"id_transaction\": null,\n  \"start_date\": \"2025-09-01\",\n  \"end_date\": \"2025-12-31\",\n  \"status\": \"active\"\n}"}, "url": { "raw": "{{baseUrl}}/api/code-redeem", "host": ["{{baseUrl}}"], "path": ["api","code-redeem"] } } },
+        { "name": "Update Code Redeem", "request": { "method": "PUT", "header": [{"key":"Content-Type","value":"application/json"}], "body": {"mode":"raw","raw":"{\n  \"status\": \"inactive\"\n}"}, "url": { "raw": "{{baseUrl}}/api/code-redeem/1", "host": ["{{baseUrl}}"], "path": ["api","code-redeem","1"] } } },
+        { "name": "Delete Code Redeem", "request": { "method": "DELETE", "header": [], "url": { "raw": "{{baseUrl}}/api/code-redeem/1", "host": ["{{baseUrl}}"], "path": ["api","code-redeem","1"] } } }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" }
+  ]
+}
+
+
