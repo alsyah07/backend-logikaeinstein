@@ -16,7 +16,8 @@ class subMapelService {
   }
   async getSubMapelById(id) {
     try {
-      const [rows] = await pool.query('SELECT * FROM sub_mapel LEFT JOIN mapel ON sub_mapel.id_mapel = mapel.id_mapel WHERE id_sub_mapel = ?', [id]);
+      const [rows] = await pool.query('SELECT * FROM sub_mapel LEFT JOIN mapel ON sub_mapel.id_mapel = mapel.id_mapel LEFT JOIN users ON users.id= sub_mapel.instructor WHERE id_sub_mapel = ?', [id]);
+      const [mapel] = await pool.query('SELECT * FROM working_hours WHERE id_working_hours = ?', [rows[0].id_working_hours]);
       
       if (rows.length === 0) {
         return {
@@ -27,7 +28,8 @@ class subMapelService {
   
       return {
         success: true,
-        data: rows[0]
+        data: rows[0],
+        mapel: mapel[0]
       };
     } catch (error) {
       console.error('Error in getSubMapelById:', error);
