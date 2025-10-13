@@ -41,15 +41,15 @@ class UserService {
   // Create new user
   async createUser(userData) {
     try {
-      const { username, name, email, password, id_role } = userData;
+      const { username, name, email, password, id_role, phone } = userData;
       
       // Hash password
       const saltRounds = 10;
       const hashedPassword = await bcrypt.hash(password, saltRounds);
       
       const [result] = await pool.query(
-        'INSERT INTO users (username, name, email, password, id_role, created_at) VALUES (?, ?, ?, ?, ?, NOW())',
-        [username, name, email, hashedPassword, id_role || 1]
+        'INSERT INTO users (username, name, email, password, id_role, no_hp, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())',
+        [username, name, email, hashedPassword, id_role || 1, phone || null]
       );
 
       return {
