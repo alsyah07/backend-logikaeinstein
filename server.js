@@ -12,7 +12,7 @@ const allowedOrigins = [
   process.env.CORS_ORIGIN,             // set di .env jika perlu
   'http://localhost:3100',
   'http://127.0.0.1:3100',
-  'https://api_invoice_staging.sigapdriver.com',
+  'https://logikaeinstein.netlify.app',
 ].filter(Boolean);
 
 const corsOptions = {
