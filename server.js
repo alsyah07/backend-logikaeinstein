@@ -7,8 +7,31 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3100;
 
-// Middleware
-app.use(cors());
+// Konfigurasi CORS: izinkan origin tertentu dan tangani preflight
+const allowedOrigins = [
+  process.env.CORS_ORIGIN,             // set di .env jika perlu
+  'http://localhost:3100',
+  'http://127.0.0.1:3100',
+  'https://api_invoice_staging.sigapdriver.com/api/v1',
+].filter(Boolean);
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Izinkan tanpa origin (postman/curl) atau jika origin ada di daftar
+    if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET','HEAD','PUT','PATCH','POST','DELETE'],
+  allowedHeaders: ['Content-Type','Authorization'],
+  credentials: true,
+  optionsSuccessStatus: 204
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // preflight untuk semua rute
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
