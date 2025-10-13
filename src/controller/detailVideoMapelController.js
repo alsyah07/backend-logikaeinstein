@@ -41,8 +41,8 @@ class detailVideoMapelController {
 
     async getDetailVideoMapelByIdSubMapel(req, res) {
         try {
-            const { id_sub_mapel } = req.params;
-            const result = await detailVideoMapelService.getDetailVideoMapelByIdSubMapel(id_sub_mapel);
+            const { id_sub_mapel,id_users } = req.params;
+            const result = await detailVideoMapelService.getDetailVideoMapelByIdSubMapel(id_sub_mapel,id_users);
             res.status(200).json(result);
         } catch (error) {
             res.status(500).json({

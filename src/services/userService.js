@@ -71,7 +71,7 @@ class UserService {
   // Update user
   async updateUser(id, userData) {
     try {
-      const { username, name, email, password } = userData;
+      const { username, name, email, password, no_hp } = userData;
       
       // Jika ada password baru, hash dulu
       let hashedPassword = null;
@@ -81,8 +81,8 @@ class UserService {
       }
       
       // Build query dinamis
-      let query = 'UPDATE users SET username = ?, name = ?, email = ?';
-      let params = [username, name, email];
+      let query = 'UPDATE users SET username = ?, name = ?, email = ?, no_hp = ?';
+      let params = [username, name, email, no_hp || null];
       
       if (hashedPassword) {
         query += ', password = ?';
@@ -112,28 +112,61 @@ class UserService {
     }
   }
 
-  // Delete user
-  async deleteUser(id) {
+  // Handle change password
+  async handleChangePassword(id, passwordData) {
     try {
-      const [result] = await pool.query('DELETE FROM users WHERE id = ?', [id]);
+      const { currentPassword, newPassword } = passwordData;
+      console.log('currentPassword',currentPassword,newPassword)
+      if (!currentPassword || !newPassword) {
+        return {
+          success: false,
+          message: 'Current password and new password are required'
+        };
+      }
 
-      if (result.affectedRows === 0) {
+      // Cari user by ID
+      const [rows] = await pool.query('SELECT * FROM users WHERE id = ?', [id]);
+      if (rows.length === 0) {
         return {
           success: false,
           message: 'User not found'
         };
       }
 
+      const user = rows[0];
+      console.log('user',user)
+
+      // Hash password baru (atau gunakan langsung jika sudah bcrypt-hash)
+      const saltRounds = 10;
+      const bcryptHashRegex = /^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$/;
+      const hashedNewPassword = bcryptHashRegex.test(newPassword)
+        ? newPassword
+        : await bcrypt.hash(newPassword, saltRounds);
+
+      // Update password
+      const [result] = await pool.query(
+        'UPDATE users SET password = ?, updated_at = NOW() WHERE id = ?',
+        [hashedNewPassword, id]
+      );
+
+      if (result.affectedRows === 0) {
+        return {
+          success: false,
+          message: 'Failed to update password'
+        };
+      }
+
       return {
         success: true,
-        message: 'User deleted successfully'
+        message: 'Password updated successfully'
       };
     } catch (error) {
-      console.error('Error in deleteUser:', error);
+      console.error('Error in handleChangePassword:', error);
       throw error;
     }
   }
 
+  
   // Login
   async loginUser(email, password) {
     try {
@@ -145,7 +178,7 @@ class UserService {
           message: 'User not found'
         };
       }
-
+    
       const user = rows[0];
       const isPasswordValid = await bcrypt.compare(password, user.password);
 

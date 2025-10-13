@@ -26,12 +26,28 @@ class detailVideoMapelService {
             id: result.insertId
         };
     }
-    async getDetailVideoMapelByIdSubMapel(id_sub_mapel) {
+    async getDetailVideoMapelByIdSubMapel(id_sub_mapel,id_users) {
         const [rows] = await pool.query(
             'SELECT * FROM detail_video_mapel left join sub_mapel on detail_video_mapel.id_sub_mapel = sub_mapel.id_sub_mapel left join mapel on sub_mapel.id_mapel = mapel.id_mapel WHERE detail_video_mapel.id_sub_mapel = ?',
             [id_sub_mapel]
         );
-        return rows;
+        const [mapel] = await pool.query(
+            'SELECT * FROM transaction WHERE transaction.id_users = ?',
+            [id_users]
+        );
+        if (rows.length === 0) {
+            return {
+                success: false,
+                message: 'Detail video mapel not found'
+            };
+        }
+        return {
+            success: true,
+            data: {
+                detail_video_mapel: rows,
+                redeem: mapel[0]
+            }
+        };
     }
 }
 

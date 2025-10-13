@@ -7,6 +7,9 @@ const userController = require('../controller/userController.js');
 const mapelController = require('../controller/mapelController.js');
 const subMapelController = require('../controller/subMapelController.js');
 const detailVideoMapelController = require('../controller/detailVideoMapelController.js');
+const redeemController = require('../controller/redeemController.js');
+
+
 
 // ============================================
 // USER ROUTES
@@ -15,6 +18,7 @@ router.get('/users', userController.getAllUsers);
 router.get('/users/:id', userController.getUserById);
 router.post('/users', userController.createUser);
 router.put('/users/:id', userController.updateUser);
+router.put('/users_password/:id', userController.handleChangePassword);
 router.delete('/users/:id', userController.deleteUser);
 router.post('/users/login', userController.loginUser);
 // ============================================
@@ -38,10 +42,14 @@ router.delete('/sub_mapel/:id', subMapelController.deleteSubMapel);
 // ============================================
 router.get('/detail_video_mapel', detailVideoMapelController.getAllDetailVideoMapel);
 router.get('/detail_video_mapel/:id', detailVideoMapelController.getDetailVideoMapelById);
-router.get('/detail_video_mapel/sub_mapel/:id_sub_mapel', detailVideoMapelController.getDetailVideoMapelByIdSubMapel);
+router.get('/detail_video_mapel/sub_mapel/:id_sub_mapel/:id_users?', detailVideoMapelController.getDetailVideoMapelByIdSubMapel);
 router.post('/detail_video_mapel', detailVideoMapelController.createDetailVideoMapel);
 // router.put('/detail_video_mapel/:id', detailVideoMapelController.updateDetailVideoMapel);
 // router.delete('/detail_video_mapel/:id', detailVideoMapelController.deleteDetailVideoMapel);
+
+router.get('/redeem_users/:code_redeem/:id_user?', redeemController.getRedeemUsersById);
+router.get('/code_redeem/:id/:no_hp', redeemController.getAllRedeemUsers);
+router.post('/redeem_users', redeemController.createRedeemUsers);
 
 
 
