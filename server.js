@@ -9,19 +9,25 @@ const PORT = process.env.PORT || 3100;
 
 // Konfigurasi CORS: izinkan origin tertentu dan tangani preflight
 const allowedOrigins = [
-  process.env.CORS_ORIGIN,             // set di .env jika perlu
-  'http://localhost:3100',
-  'http://127.0.0.1:3100',
+  process.env.CORS_ORIGIN,
+  'http://localhost:5173',
   'https://logikaeinstein.netlify.app',
 ].filter(Boolean);
 
+
 const corsOptions = {
   origin: (origin, callback) => {
-    // Izinkan tanpa origin (postman/curl) atau jika origin ada di daftar
-    if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+    console.log('🌍 Request Origin:', origin);
+    console.log('✅ Allowed Origins:', allowedOrigins);
+
+    const normalizedOrigin = origin?.replace(/\/$/, ''); // hapus slash di akhir
+
+    if (!origin || allowedOrigins.includes(normalizedOrigin)) {
+      console.log('🟢 CORS allowed:', normalizedOrigin);
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      console.warn('🚫 CORS blocked:', normalizedOrigin);
+      callback(new Error(`Not allowed by CORS: ${normalizedOrigin}`));
     }
   },
   methods: ['GET','HEAD','PUT','PATCH','POST','DELETE'],
@@ -29,6 +35,7 @@ const corsOptions = {
   credentials: true,
   optionsSuccessStatus: 204
 };
+
 
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions)); // preflight untuk semua rute
