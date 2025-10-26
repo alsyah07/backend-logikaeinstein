@@ -5,36 +5,40 @@ class UserService {
 
   async getRedeemUsersById(code_redeem, id_user) {
     try {
+      // Hitung tanggal untuk validasi expired
+      const now = new Date();
+      const currentDate = now.toISOString().slice(0, 19).replace('T', ' '); // Format: YYYY-MM-DD HH:mm:ss
+
       let rows;
       if (id_user) {
         [rows] = await pool.query(
-          'SELECT * FROM transaction WHERE code_redeem = ? AND id_users = ?',
-          [code_redeem, id_user]
+          'SELECT * FROM transaction WHERE code_redeem = ? AND id_users = ? AND expired_date > ?',
+          [code_redeem, id_user, currentDate]
         );
       } else {
         [rows] = await pool.query(
-          'SELECT * FROM transaction WHERE code_redeem = ?',
-          [code_redeem]
+          'SELECT * FROM transaction WHERE code_redeem = ? AND expired_date > ?',
+          [code_redeem, currentDate]
         );
       }
 
       if (rows.length === 0) {
         return {
           success: false,
-          message: 'User not found'
+          message: 'User not found or code expired'
         };
       }
 
       // Update status_redeem menjadi 1 untuk kode yang cocok
       if (id_user) {
         await pool.query(
-          'UPDATE transaction SET status_redeem = 1, status="success", updated_at = NOW() WHERE code_redeem = ? AND id_users = ?',
-          [code_redeem, id_user]
+          'UPDATE transaction SET status_redeem = 1, status="success", start_date = ?, expired_date = ?, updated_at = ? WHERE code_redeem = ? AND id_users = ? AND expired_date > ?',
+          [currentDate, new Date(now.getTime() + (365 * 24 * 60 * 60 * 1000)).toISOString().slice(0, 19).replace('T', ' '), currentDate, code_redeem, id_user, currentDate]
         );
       } else {
         await pool.query(
-          'UPDATE transaction SET status_redeem = 1, status="success", updated_at = NOW() WHERE code_redeem = ?',
-          [code_redeem]
+          'UPDATE transaction SET status_redeem = 1, status="success", start_date = ?, expired_date = ?, updated_at = ? WHERE code_redeem = ? AND expired_date > ?',
+          [currentDate, new Date(now.getTime() + (365 * 24 * 60 * 60 * 1000)).toISOString().slice(0, 19).replace('T', ' '), currentDate, code_redeem, currentDate]
         );
       }
 
@@ -188,21 +192,20 @@ class UserService {
         const payload = {
           target: targetHp,
           message: `✅ Pembayaran Berhasil!
+        👋 Halo ${datausers[0].name || 'Pengguna'},
 
-👋 Halo ${datausers[0].name || 'Pengguna'},
+        Terima kasih telah melakukan pembayaran. Berikut detail transaksi Anda:
+        - 👤 Nama: ${datausers[0].name || '-'}
+        - 📧 Email: ${datausers[0].email || '-'}
 
-Terima kasih telah melakukan pembayaran. Berikut detail transaksi Anda:
-- 👤 Nama: ${datausers[0].name || '-'}
-- 📧 Email: ${datausers[0].email || '-'}
+        *🔒 KODE REDEEM:*
+        \`\`\`
+        ${rows[0].code_redeem}
+        \`\`\`
 
-*🔒 KODE REDEEM:*
-\`\`\`
-${rows[0].code_redeem}
-\`\`\`
-
-📘 Silakan gunakan kode redeem di aplikasi untuk mengakses materi.
-🙏 Terima kasih telah mempercayai Logika Einstein.
-🧠 Butuh bantuan? Balas pesan ini untuk menghubungi kami.`
+        📘 Silakan gunakan kode redeem di aplikasi untuk mengakses materi.
+        🙏 Terima kasih telah mempercayai Logika Einstein.
+        🧠 Butuh bantuan? Balas pesan ini untuk menghubungi kami.`
         };
         const options = {
           hostname: 'api.fonnte.com',
