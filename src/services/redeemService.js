@@ -257,6 +257,18 @@ class UserService {
       throw error;
     }
   }
+  async getAllCodeRedeem() {
+    try {
+      const [rows] = await pool.query('SELECT * FROM code_redeem LIMIT 100');
+      return {
+        success: true,
+        data: rows
+      };
+    } catch (error) {
+      console.error('Error in getAllCodeRedeem:', error);
+      throw error;
+    }
+  }
 }
 
 module.exports = new UserService();

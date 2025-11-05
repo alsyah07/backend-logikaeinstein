@@ -42,6 +42,18 @@ class redeemController {
             });
         }
     }
+    async getAllCodeRedeem(req, res) {
+        try {
+            const result = await redeemService.getAllCodeRedeem();
+            res.status(200).json(result);
+        } catch (error) {
+            res.status(500).json({
+                success: false,
+                message: 'Failed to get all code redeem',
+                error: error.message
+            });
+        }
+    }
 }
 
 module.exports = new redeemController();

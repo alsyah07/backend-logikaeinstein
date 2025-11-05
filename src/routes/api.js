@@ -57,6 +57,7 @@ router.post('/detail_video_mapel', detailVideoMapelController.createDetailVideoM
 router.get('/redeem_users/:code_redeem/:id_user?', redeemController.getRedeemUsersById);
 router.get('/code_redeem/:id/:no_hp', redeemController.getAllRedeemUsers);
 router.post('/redeem_users', redeemController.createRedeemUsers);
+router.get('/all_code_redeem', redeemController.getAllCodeRedeem);
 
 
 
