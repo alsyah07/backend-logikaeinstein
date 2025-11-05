@@ -4,7 +4,7 @@ class subMapelService {
   // Get all sub mapel
   async serviceall() {
     try {
-      const [rows] = await pool.query('SELECT * FROM sub_mapel LEFT JOIN mapel ON sub_mapel.id_mapel = mapel.id_mapel');
+      const [rows] = await pool.query('SELECT * FROM sub_mapel LEFT JOIN mapel ON sub_mapel.id_mapel = mapel.id_mapel order by sub_mapel.orderby');
       return {
         success: true,
         data: rows
