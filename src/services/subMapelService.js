@@ -16,7 +16,7 @@ class subMapelService {
   }
   async getSubMapelById(id) {
     try {
-      const [rows] = await pool.query('SELECT * FROM sub_mapel LEFT JOIN mapel ON sub_mapel.id_mapel = mapel.id_mapel  WHERE sub_mapel.id_mapel = ?', [id]);
+      const [rows] = await pool.query('SELECT * FROM sub_mapel LEFT JOIN mapel ON sub_mapel.id_mapel = mapel.id_mapel  WHERE sub_mapel.id_mapel = ? order by sub_mapel.orderby ASC', [id]);
       const [mapel] = await pool.query('SELECT * FROM working_hours WHERE id_working_hours = ?', [rows[0].id_working_hours]);
       
       if (rows.length === 0) {
