@@ -7,40 +7,61 @@ class UserService {
     try {
       // Hitung tanggal untuk validasi expired
       const now = new Date();
-      const currentDate = now.toISOString().slice(0, 19).replace('T', ' '); // Format: YYYY-MM-DD HH:mm:ss
+      const currentDate = now.toISOString().slice(0, 19).replace('T', ' ');
+      const nextYear = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .slice(0, 19)
+        .replace('T', ' ');
 
-      let rows;
-      if (id_user) {
-        [rows] = await pool.query(
-          'SELECT * FROM transaction WHERE code_redeem = ? AND id_users = ? AND expired_date > ?',
-          [code_redeem, id_user, currentDate]
-        );
-      } else {
-        [rows] = await pool.query(
-          'SELECT * FROM transaction WHERE code_redeem = ? AND expired_date > ?',
-          [code_redeem, currentDate]
-        );
-      }
+      // Cek kode di tabel code_redeem: harus ada dan belum dipakai (status IS NULL)
+      const [redeemRows] = await pool.query(
+        'SELECT * FROM code_redeem WHERE code_redeem = ? AND status IS NULL LIMIT 1',
+        [code_redeem]
+      );
 
-      if (rows.length === 0) {
+      if (redeemRows.length === 0) {
         return {
           success: false,
-          message: 'User not found or code expired'
+          message: 'Code not found or already used'
         };
       }
 
-      // Update status_redeem menjadi 1 untuk kode yang cocok
-      if (id_user) {
-        await pool.query(
-          'UPDATE transaction SET status_redeem = 1, status="success", start_date = ?, expired_date = ?, updated_at = ? WHERE code_redeem = ? AND id_users = ? AND expired_date > ?',
-          [currentDate, new Date(now.getTime() + (365 * 24 * 60 * 60 * 1000)).toISOString().slice(0, 19).replace('T', ' '), currentDate, code_redeem, id_user, currentDate]
-        );
-      } else {
-        await pool.query(
-          'UPDATE transaction SET status_redeem = 1, status="success", start_date = ?, expired_date = ?, updated_at = ? WHERE code_redeem = ? AND expired_date > ?',
-          [currentDate, new Date(now.getTime() + (365 * 24 * 60 * 60 * 1000)).toISOString().slice(0, 19).replace('T', ' '), currentDate, code_redeem, currentDate]
-        );
+      // Validasi masa berlaku di tabel transaction
+      const transactionSelectQuery = id_user
+        ? 'SELECT * FROM transaction WHERE code_redeem = ? AND id_users = ? AND expired_date > ? LIMIT 1'
+        : 'SELECT * FROM transaction WHERE code_redeem = ? AND expired_date > ? LIMIT 1';
+
+      const transactionSelectParams = id_user
+        ? [code_redeem, id_user, currentDate]
+        : [code_redeem, currentDate];
+
+      const [trxRows] = await pool.query(transactionSelectQuery, transactionSelectParams);
+
+      if (trxRows.length === 0) {
+        return {
+          success: false,
+          message: 'Transaction not found or code expired'
+        };
       }
+
+      const trx = trxRows[0];
+
+      // Update tabel transaction: set status redeem + refresh masa berlaku
+      const transactionUpdateQuery = id_user
+        ? 'UPDATE transaction SET status_redeem = 1, status = "success", start_date = ?, expired_date = ?, updated_at = ? WHERE id_transaction = ? AND id_users = ?'
+        : 'UPDATE transaction SET status_redeem = 1, status = "success", start_date = ?, expired_date = ?, updated_at = ? WHERE id_transaction = ?';
+
+      const transactionUpdateParams = id_user
+        ? [currentDate, nextYear, currentDate, trx.id_transaction, id_user]
+        : [currentDate, nextYear, currentDate, trx.id_transaction];
+
+      await pool.query(transactionUpdateQuery, transactionUpdateParams);
+
+      // Tandai kode di tabel code_redeem sebagai dipakai dan link ke id_transaction
+      await pool.query(
+        'UPDATE code_redeem SET status = 1, id_transaction = ?, updated_at = ? WHERE code_redeem = ?',
+        [trx.id_transaction, currentDate, code_redeem]
+      );
 
       const updated = rows[0];
       updated.status_redeem = 1;
@@ -58,54 +79,36 @@ class UserService {
   async createRedeemUsers(redeemUsersData) {
     try {
       const { id_users, code_redeem } = redeemUsersData;
+     // console.log(id_users, code_redeem);
 
-      const existsInDb = async (code) => {
         const [rows] = await pool.query(
-          'SELECT 1 FROM transaction WHERE code_redeem = ? LIMIT 1',
-          [code]
+          'SELECT * FROM code_redeem WHERE code_redeem = ? LIMIT 1',
+          [code_redeem]
         );
-        return rows.length > 0;
-      };
+        const row = rows[0];
+       // console.log(row.code_redeem);
+        if(row.code_redeem !== null) {
+          const now = new Date();
+          const startDate = now.toISOString().slice(0, 19).replace('T', ' ');
+          const endDate = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000)
+            .toISOString()
+            .slice(0, 19)
+            .replace('T', ' ');
 
-      const generateCode = () => {
-        const now = new Date();
-        const pad = (n) => String(n).padStart(2, '0');
-        const yyyy = now.getFullYear();
-        const MM = pad(now.getMonth() + 1);
-        const dd = pad(now.getDate());
-        const HH = pad(now.getHours());
-        const mm = pad(now.getMinutes());
-        const ss = pad(now.getSeconds());
-        const ts = `${yyyy}${MM}${dd}${HH}${mm}${ss}`;
-
-        const rand6 = Math.floor(100000 + Math.random() * 900000); // 6 digit
-        const letters = Array.from({ length: 3 }, () =>
-          String.fromCharCode(65 + Math.floor(Math.random() * 26))
-        ).join(''); // huruf acak 3 karakter
-
-        // Format: RD-<huruf>-<id_users>-<YYYYMMDDHHmmss>-<6digit>
-        return `RD-${letters}-${id_users}-${ts}-${rand6}`;
-      };
-
-      // Jika code_redeem dikirim dan belum dipakai, gunakan; jika tidak/duplikat, generate baru
-      let finalCode =
-        code_redeem && !(await existsInDb(code_redeem)) ? code_redeem : generateCode();
-
-      // Pastikan tidak duplikat (loop sampai unik)
-      while (await existsInDb(finalCode)) {
-        finalCode = generateCode();
-      }
-
-      const [result] = await pool.query(
-        'INSERT INTO transaction (id_users, code_redeem, date, created_at, updated_at) VALUES (?, ?, NOW(), NOW(), NOW())',
-        [id_users, finalCode]
-      );
-
-      return {
-        success: true,
-        message: 'Redeem users created successfully',
-        data: { id: result.insertId, id_users, code_redeem: finalCode }
-      };
+          const [trx] = await pool.query(
+            'INSERT INTO transaction (id_users, code_redeem, date, status, start_date, expired_date, created_at, updated_at) VALUES (?, ?, NOW(), "success", ?, ?, NOW(), NOW())',
+            [id_users, code_redeem, startDate, endDate]
+          );
+          const [rowUpdate] = await pool.query(
+            'UPDATE code_redeem SET status = 1, id_users = ? WHERE code_redeem = ?',
+            [id_users, code_redeem]
+          );
+          return {
+            success: true,
+            code:200,
+            message: 'Redeem users created successfully',
+          };
+        }
     } catch (error) {
       console.error('Error in createRedeemUsers:', error);
       throw error;
