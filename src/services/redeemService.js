@@ -259,7 +259,7 @@ class UserService {
   }
   async getAllCodeRedeem() {
     try {
-      const [rows] = await pool.query('SELECT * FROM code_redeem LIMIT 100 WHERE status IS NULL');
+      const [rows] = await pool.query('SELECT * FROM code_redeem WHERE status IS NULL LIMIT 100');
       return {
         success: true,
         data: rows
