@@ -52,6 +52,19 @@ class detailVideoMapelController {
             });
         }
     }
+    async getDetailVideoMapelByIdSubMapelPembahasan(req, res) {
+        try {
+            const { id_sub_mapel_detail,id_users } = req.params;
+            const result = await detailVideoMapelService.getDetailVideoMapelByIdSubMapelPembahasan(id_sub_mapel_detail,id_users);
+            res.status(200).json(result);
+        } catch (error) {
+            res.status(500).json({
+                success: false,
+                message: 'Failed to get detail video mapel by sub mapel id',
+                error: error.message
+            });
+        }
+    }
 }
 
 module.exports = new detailVideoMapelController();

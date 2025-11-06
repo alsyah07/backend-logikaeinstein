@@ -50,6 +50,7 @@ router.get('/sub_mapel_detail/:id', subMapelDetailController.getSubMapelDetailBy
 router.get('/detail_video_mapel', detailVideoMapelController.getAllDetailVideoMapel);
 router.get('/detail_video_mapel/:id', detailVideoMapelController.getDetailVideoMapelById);
 router.get('/detail_video_mapel/sub_mapel/:id_sub_mapel_detail/:id_users?', detailVideoMapelController.getDetailVideoMapelByIdSubMapel);
+router.get('/detail_video_pembahasan/:id_sub_mapel_detail/:id_users?', detailVideoMapelController.getDetailVideoMapelByIdSubMapelPembahasan);
 router.post('/detail_video_mapel', detailVideoMapelController.createDetailVideoMapel);
 // router.put('/detail_video_mapel/:id', detailVideoMapelController.updateDetailVideoMapel);
 // router.delete('/detail_video_mapel/:id', detailVideoMapelController.deleteDetailVideoMapel);
