@@ -12,6 +12,7 @@ const allowedOrigins = [
   process.env.CORS_ORIGIN,
   'http://localhost:5173',
   'https://logikaeinstein.netlify.app',
+  'https://logikaeinstein.com'
 ].filter(Boolean);
 
 
