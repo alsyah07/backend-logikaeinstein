@@ -79,36 +79,41 @@ class UserService {
   async createRedeemUsers(redeemUsersData) {
     try {
       const { id_users, code_redeem } = redeemUsersData;
-     // console.log(id_users, code_redeem);
+      // console.log(id_users, code_redeem);
 
-        const [rows] = await pool.query(
-          'SELECT * FROM code_redeem WHERE code_redeem = ? LIMIT 1',
-          [code_redeem]
+      const [rows] = await pool.query(
+        'SELECT * FROM code_redeem WHERE code_redeem = ? AND status =1 AND id_users = ? LIMIT 1',
+        [code_redeem, id_users]
+      );
+      const row = rows[0];
+      // console.log(row.code_redeem);
+      if (!row) {
+        const now = new Date();
+        const startDate = now.toISOString().slice(0, 19).replace('T', ' ');
+        const endDate = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000)
+          .toISOString()
+          .slice(0, 19)
+          .replace('T', ' ');
+
+        const [trx] = await pool.query(
+          'INSERT INTO transaction (id_users, code_redeem, date, status, start_date, expired_date, created_at, updated_at) VALUES (?, ?, NOW(), "success", ?, ?, NOW(), NOW())',
+          [id_users, code_redeem, startDate, endDate]
         );
-        const row = rows[0];
-       // console.log(row.code_redeem);
-        if(row.code_redeem !== null) {
-          const now = new Date();
-          const startDate = now.toISOString().slice(0, 19).replace('T', ' ');
-          const endDate = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000)
-            .toISOString()
-            .slice(0, 19)
-            .replace('T', ' ');
-
-          const [trx] = await pool.query(
-            'INSERT INTO transaction (id_users, code_redeem, date, status, start_date, expired_date, created_at, updated_at) VALUES (?, ?, NOW(), "success", ?, ?, NOW(), NOW())',
-            [id_users, code_redeem, startDate, endDate]
-          );
-          const [rowUpdate] = await pool.query(
-            'UPDATE code_redeem SET status = 1, id_users = ? WHERE code_redeem = ?',
-            [id_users, code_redeem]
-          );
-          return {
-            success: true,
-            code:200,
-            message: 'Redeem users created successfully',
-          };
-        }
+        const [rowUpdate] = await pool.query(
+          'UPDATE code_redeem SET status = 1, id_users = ? WHERE code_redeem = ?',
+          [id_users, code_redeem]
+        );
+        return {
+          success: true,
+          code: 200,
+          message: 'Redeem users created successfully',
+        };
+      } else if (row.id_users !== null) {
+        return {
+          success: false,
+          message: 'Code already used by another user'
+        };
+      }
     } catch (error) {
       console.error('Error in createRedeemUsers:', error);
       throw error;
