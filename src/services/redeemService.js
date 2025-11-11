@@ -79,15 +79,15 @@ class UserService {
   async createRedeemUsers(redeemUsersData) {
     try {
       const { id_users, code_redeem } = redeemUsersData;
-      // console.log(id_users, code_redeem);
+     // console.log(id_users, code_redeem);
 
       const [rows] = await pool.query(
-        'SELECT * FROM code_redeem WHERE code_redeem = ? AND status =1 AND id_users = ? LIMIT 1',
-        [code_redeem, id_users]
+        'SELECT * FROM code_redeem WHERE code_redeem = ? LIMIT 1',
+        [code_redeem]
       );
       const row = rows[0];
-      // console.log(row.code_redeem);
-      if (!row) {
+     // console.log(row);
+      if (row.status === null && row.id_users != id_users) {
         const now = new Date();
         const startDate = now.toISOString().slice(0, 19).replace('T', ' ');
         const endDate = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000)
@@ -108,9 +108,10 @@ class UserService {
           code: 200,
           message: 'Redeem users created successfully',
         };
-      } else if (row.id_users !== null) {
+      } else  {
         return {
-          success: false,
+          success: true,
+          code: 100,
           message: 'Code already used by another user'
         };
       }
