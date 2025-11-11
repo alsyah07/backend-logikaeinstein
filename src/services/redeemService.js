@@ -13,62 +13,60 @@ class UserService {
         .slice(0, 19)
         .replace('T', ' ');
 
-      // Cek kode di tabel code_redeem: harus ada dan belum dipakai (status IS NULL)
-      const [redeemRows] = await pool.query(
-        'SELECT * FROM code_redeem WHERE code_redeem = ? AND status IS NULL LIMIT 1',
+      // Cek kode di code_redeem tanpa filter status dulu
+      const [codeRows] = await pool.query(
+        'SELECT * FROM code_redeem WHERE code_redeem = ? LIMIT 1',
         [code_redeem]
       );
+      if (codeRows.length === 0) {
+        return { success: false, message: 'Code not found' };
+      }
+      const codeRec = codeRows[0];
 
-      if (redeemRows.length === 0) {
-        return {
-          success: false,
-          message: 'Code not found or already used'
-        };
+      // Jika status = 1, maka kode sudah digunakan dan tidak bisa dipakai
+      if (codeRec.status === 1) {
+        return { success: false, message: 'Code already used' };
       }
 
-      // Validasi masa berlaku di tabel transaction
-      const transactionSelectQuery = id_user
+      // Validasi transaksi dan masa berlaku
+      const selectQuery = id_user
         ? 'SELECT * FROM transaction WHERE code_redeem = ? AND id_users = ? AND expired_date > ? LIMIT 1'
         : 'SELECT * FROM transaction WHERE code_redeem = ? AND expired_date > ? LIMIT 1';
-
-      const transactionSelectParams = id_user
+      const selectParams = id_user
         ? [code_redeem, id_user, currentDate]
         : [code_redeem, currentDate];
 
-      const [trxRows] = await pool.query(transactionSelectQuery, transactionSelectParams);
-
+      const [trxRows] = await pool.query(selectQuery, selectParams);
       if (trxRows.length === 0) {
-        return {
-          success: false,
-          message: 'Transaction not found or code expired'
-        };
+        return { success: false, message: 'Transaction not found or code expired' };
       }
-
       const trx = trxRows[0];
 
-      // Update tabel transaction: set status redeem + refresh masa berlaku
-      const transactionUpdateQuery = id_user
+      // Update transaksi: set status redeem + refresh masa berlaku (start_date & expired_date)
+      const updateQuery = id_user
         ? 'UPDATE transaction SET status_redeem = 1, status = "success", start_date = ?, expired_date = ?, updated_at = ? WHERE id_transaction = ? AND id_users = ?'
         : 'UPDATE transaction SET status_redeem = 1, status = "success", start_date = ?, expired_date = ?, updated_at = ? WHERE id_transaction = ?';
-
-      const transactionUpdateParams = id_user
+      const updateParams = id_user
         ? [currentDate, nextYear, currentDate, trx.id_transaction, id_user]
         : [currentDate, nextYear, currentDate, trx.id_transaction];
 
-      await pool.query(transactionUpdateQuery, transactionUpdateParams);
+      await pool.query(updateQuery, updateParams);
 
-      // Tandai kode di tabel code_redeem sebagai dipakai dan link ke id_transaction
+      // Tandai kode di code_redeem sebagai digunakan dan kaitkan ke transaksi
       await pool.query(
         'UPDATE code_redeem SET status = 1, id_transaction = ?, updated_at = ? WHERE code_redeem = ?',
         [trx.id_transaction, currentDate, code_redeem]
       );
 
-      const updated = rows[0];
-      updated.status_redeem = 1;
-
       return {
         success: true,
-        data: updated
+        data: {
+          ...trx,
+          status_redeem: 1,
+          start_date: currentDate,
+          expired_date: nextYear,
+          status: 'success'
+        }
       };
     } catch (error) {
       console.error('Error in getRedeemUsersById:', error);
