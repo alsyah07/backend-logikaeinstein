@@ -79,36 +79,58 @@ class UserService {
   async createRedeemUsers(redeemUsersData) {
     try {
       const { id_users, code_redeem } = redeemUsersData;
-     // console.log(id_users, code_redeem);
 
-        const [rows] = await pool.query(
-          'SELECT * FROM code_redeem WHERE code_redeem = ? LIMIT 1',
-          [code_redeem]
-        );
-        const row = rows[0];
-       // console.log(row.code_redeem);
-        if(row.status !== null) {
-          const now = new Date();
-          const startDate = now.toISOString().slice(0, 19).replace('T', ' ');
-          const endDate = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000)
-            .toISOString()
-            .slice(0, 19)
-            .replace('T', ' ');
+      // Validasi input
+      if (!id_users || !code_redeem) {
+        return { success: false, code: 400, message: 'id_users dan code_redeem wajib diisi' };
+      }
 
-          const [trx] = await pool.query(
-            'INSERT INTO transaction (id_users, code_redeem, date, status, start_date, expired_date, created_at, updated_at) VALUES (?, ?, NOW(), "success", ?, ?, NOW(), NOW())',
-            [id_users, code_redeem, startDate, endDate]
-          );
-          const [rowUpdate] = await pool.query(
-            'UPDATE code_redeem SET status = 1, id_users = ? WHERE code_redeem = ?',
-            [id_users, code_redeem]
-          );
-          return {
-            success: true,
-            code:200,
-            message: 'Redeem users created successfully',
-          };
+      // Cek kode tanpa filter status
+      const [rows] = await pool.query(
+        'SELECT * FROM code_redeem WHERE code_redeem = ? LIMIT 1',
+        [code_redeem]
+      );
+      const row = rows[0];
+
+      // Kode tidak ditemukan
+      if (!row) {
+        return { success: false, code: 404, message: 'Kode redeem tidak ditemukan' };
+      }
+
+      // Jika sudah dipakai (status = 1)
+      if (row.status === 1) {
+        if (row.id_users && row.id_users !== id_users) {
+          return { success: false, code: 400, message: 'Kode redeem sudah dipakai oleh pengguna lain' };
         }
+        return { success: false, code: 400, message: 'Kode redeem sudah digunakan' };
+      }
+
+      // Hitung tanggal di JavaScript
+      const now = new Date();
+      const currentDate = now.toISOString().slice(0, 19).replace('T', ' ');
+      const startDate = currentDate;
+      const endDate = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .slice(0, 19)
+        .replace('T', ' ');
+
+      // Buat transaksi baru
+      const [trxResult] = await pool.query(
+        'INSERT INTO transaction (id_users, code_redeem, date, status, start_date, expired_date, created_at, updated_at) VALUES (?, ?, ?, "success", ?, ?, ?, ?)',
+        [id_users, code_redeem, currentDate, startDate, endDate, currentDate, currentDate]
+      );
+
+      // Update code_redeem: tandai dipakai dan kaitkan dengan transaksi
+      await pool.query(
+        'UPDATE code_redeem SET status = 1, id_users = ?, id_transaction = ?, updated_at = ? WHERE code_redeem = ?',
+        [id_users, trxResult.insertId, currentDate, code_redeem]
+      );
+
+      return {
+        success: true,
+        code: 200,
+        message: 'Redeem users created successfully'
+      };
     } catch (error) {
       console.error('Error in createRedeemUsers:', error);
       throw error;
