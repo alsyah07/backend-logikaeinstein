@@ -22,6 +22,7 @@ router.put('/users/:id', userController.updateUser);
 router.put('/users_password/:id', userController.handleChangePassword);
 router.delete('/users/:id', userController.deleteUser);
 router.post('/users/login', userController.loginUser);
+router.get('/cek_session/:id', userController.cekSession);
 // ============================================
 // MAPEL ROUTES
 // ============================================

@@ -227,6 +227,30 @@ class UserService {
       throw error;
     }
   }
+  async cekSession(id) {
+    try {
+      const [rows] = await pool.query(
+        'SELECT * FROM sessions WHERE user_id = ?',
+        [id]
+      );
+
+      if (rows.length === 0) {
+        return {
+          success: false,
+          message: 'Session not found'
+        };
+      }
+
+      return {
+        success: true,
+        message: 'Session found',
+        data: rows[0]
+      };
+    } catch (error) {
+      console.error('Error in cekSession:', error);
+      throw error;
+    }
+  }
 
 }
 
