@@ -185,7 +185,7 @@ class UserService {
 
       const user = rows[0];
 
-      // 2. Validasi password
+      // Validasi password
       const isPasswordValid = await bcrypt.compare(password, user.password);
 
       if (!isPasswordValid) {
@@ -195,18 +195,35 @@ class UserService {
         };
       }
 
-      // 3. Hapus password sebelum return
+      // Hapus password sebelum return
       delete user.password;
 
-      // 4. Insert session baru ke tabel sessions
-      const [sessionResult] = await pool.query(
-        `INSERT INTO sessions (user_id, device_id, ip_address, active, created_at)
-       VALUES (?, ?, ?, '1', NOW())`,
-        [user.id, device_id, ip_address]
+      // Upsert session berdasarkan user_id
+      const [sessionRows] = await pool.query(
+        'SELECT id FROM sessions WHERE user_id = ? LIMIT 1',
+        [user.id]
       );
 
-      // 5. Ambil ID session yang baru dibuat
-      const sessionId = sessionResult.insertId;
+      let sessionId;
+
+      if (sessionRows.length > 0) {
+        // Sudah ada session, update data session
+        sessionId = sessionRows[0].id;
+        await pool.query(
+          `UPDATE sessions
+           SET device_id = ?, ip_address = ?, active = '1'
+           WHERE id = ?`,
+          [device_id, ip_address, sessionId]
+        );
+      } else {
+        // Belum ada session, buat baru
+        const [sessionResult] = await pool.query(
+          `INSERT INTO sessions (user_id, device_id, ip_address, active, created_at)
+           VALUES (?, ?, ?, '1', NOW())`,
+          [user.id, device_id, ip_address]
+        );
+        sessionId = sessionResult.insertId;
+      }
 
       return {
         success: true,
