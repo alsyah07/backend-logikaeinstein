@@ -20,7 +20,7 @@ class UserService {
   async getUserById(id) {
     try {
       const [rows] = await pool.query('SELECT * FROM users WHERE id = ?', [id]);
-      
+
       if (rows.length === 0) {
         return {
           success: false,
@@ -42,11 +42,11 @@ class UserService {
   async createUser(userData) {
     try {
       const { username, name, email, password, id_role, phone } = userData;
-      
+
       // Hash password
       const saltRounds = 10;
       const hashedPassword = await bcrypt.hash(password, saltRounds);
-      
+
       const [result] = await pool.query(
         'INSERT INTO users (username, name, email, password, id_role, no_hp, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())',
         [username, name, email, hashedPassword, id_role || 1, phone || null]
@@ -72,26 +72,26 @@ class UserService {
   async updateUser(id, userData) {
     try {
       const { username, name, email, password, no_hp } = userData;
-      
+
       // Jika ada password baru, hash dulu
       let hashedPassword = null;
       if (password) {
         const saltRounds = 10;
         hashedPassword = await bcrypt.hash(password, saltRounds);
       }
-      
+
       // Build query dinamis
       let query = 'UPDATE users SET username = ?, name = ?, email = ?, no_hp = ?';
       let params = [username, name, email, no_hp || null];
-      
+
       if (hashedPassword) {
         query += ', password = ?';
         params.push(hashedPassword);
       }
-      
+
       query += ', updated_at = NOW() WHERE id = ?';
       params.push(id);
-      
+
       const [result] = await pool.query(query, params);
 
       if (result.affectedRows === 0) {
@@ -116,7 +116,7 @@ class UserService {
   async handleChangePassword(id, passwordData) {
     try {
       const { currentPassword, newPassword } = passwordData;
-      console.log('currentPassword',currentPassword,newPassword)
+      console.log('currentPassword', currentPassword, newPassword)
       if (!currentPassword || !newPassword) {
         return {
           success: false,
@@ -134,7 +134,7 @@ class UserService {
       }
 
       const user = rows[0];
-      console.log('user',user)
+      console.log('user', user)
 
       // Hash password baru (atau gunakan langsung jika sudah bcrypt-hash)
       const saltRounds = 10;
@@ -166,20 +166,26 @@ class UserService {
     }
   }
 
-  
+
   // Login
-  async loginUser(email, password) {
+  async loginUser(email, password, deviceId, ipAddress) {
     try {
-      const [rows] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
-      
+      // 1. Cari user berdasarkan email
+      const [rows] = await pool.query(
+        'SELECT * FROM users WHERE email = ?',
+        [email]
+      );
+
       if (rows.length === 0) {
         return {
           success: false,
           message: 'User not found'
         };
       }
-    
+
       const user = rows[0];
+
+      // 2. Validasi password
       const isPasswordValid = await bcrypt.compare(password, user.password);
 
       if (!isPasswordValid) {
@@ -189,21 +195,39 @@ class UserService {
         };
       }
 
-      // Jangan return password
+      // 3. Hapus password sebelum return
       delete user.password;
+
+      // 4. Insert session baru ke tabel sessions
+      const [sessionResult] = await pool.query(
+        `INSERT INTO sessions (user_id, device_id, ip_address, active, created_at)
+       VALUES (?, ?, ?, '1', NOW())`,
+        [user.id, deviceId, ipAddress]
+      );
+
+      // 5. Ambil ID session yang baru dibuat
+      const sessionId = sessionResult.insertId;
 
       return {
         success: true,
         message: 'Login successful',
         data: {
-          user: user
+          user: user,
+          session: {
+            id: sessionId,
+            device_id: deviceId,
+            ip_address: ipAddress,
+            active: '1'
+          }
         }
       };
+
     } catch (error) {
       console.error('Error in loginUser:', error);
       throw error;
     }
   }
+
 }
 
 module.exports = new UserService();

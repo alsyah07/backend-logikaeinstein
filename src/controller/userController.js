@@ -108,8 +108,8 @@ class UserController {
   // POST /api/v1/login
 async loginUser(req, res) {
   try {
-    const { email, password } = req.body;
-    const result = await userService.loginUser(email, password);
+    const { email, password, deviceId, ipAddress } = req.body;
+    const result = await userService.loginUser(email, password, deviceId, ipAddress);
     
     if (!result.success) {
       return res.status(401).json(result);
