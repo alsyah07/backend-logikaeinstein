@@ -168,7 +168,7 @@ class UserService {
 
 
   // Login
-  async loginUser(email, password, deviceId, ipAddress) {
+  async loginUser(email, password, device_id, ip_address) {
     try {
       // 1. Cari user berdasarkan email
       const [rows] = await pool.query(
@@ -202,7 +202,7 @@ class UserService {
       const [sessionResult] = await pool.query(
         `INSERT INTO sessions (user_id, device_id, ip_address, active, created_at)
        VALUES (?, ?, ?, '1', NOW())`,
-        [user.id, deviceId, ipAddress]
+        [user.id, device_id, ip_address]
       );
 
       // 5. Ambil ID session yang baru dibuat
@@ -215,8 +215,8 @@ class UserService {
           user: user,
           session: {
             id: sessionId,
-            device_id: deviceId,
-            ip_address: ipAddress,
+            device_id: device_id,
+            ip_address: ip_address,
             active: '1'
           }
         }
