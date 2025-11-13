@@ -275,6 +275,34 @@ class UserService {
       throw error;
     }
   }
+  async getAllCodeRedeemUsers() {
+    try {
+      const [rows] = await pool.query('SELECT * FROM transaction LEFT JOIN users ON transaction.id_users = users.id  LIMIT 100');
+      return {
+        success: true,
+        data: rows
+      };
+    } catch (error) {
+      console.error('Error in getAllRedeem_Users:', error);
+      throw error;
+    }
+  }
+  async getAllCodeRedeemStatistik() {
+    try {
+      const [rows_success] = await pool.query('SELECT COUNT(*) AS total_redeem FROM code_redeem WHERE status = 1');
+      const [rows_failed] = await pool.query('SELECT COUNT(*) AS code_redeem_free FROM code_redeem WHERE status IS NULL');
+      return {
+        success: true,
+        data: {
+          total_redeem: rows_success[0].total_redeem,
+          code_redeem_free: rows_failed[0].code_redeem_free
+        }
+      };
+    } catch (error) {
+      console.error('Error in getAllCodeRedeemStatistik:', error);
+      throw error;
+    }
+  }
 }
 
 module.exports = new UserService();

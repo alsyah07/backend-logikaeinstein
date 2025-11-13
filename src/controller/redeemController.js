@@ -54,6 +54,30 @@ class redeemController {
             });
         }
     }
+    async getAllCodeRedeemUsers(req, res) {
+        try {
+            const result = await redeemService.getAllCodeRedeemUsers();
+            res.status(200).json(result);
+        } catch (error) {
+            res.status(500).json({
+                success: false,
+                message: 'Failed to get all redeem users',
+                error: error.message
+            });
+        }
+    }
+    async getAllCodeRedeemStatistik(req, res) {
+        try {
+            const result = await redeemService.getAllCodeRedeemStatistik();
+            res.status(200).json(result);
+        } catch (error) {
+            res.status(500).json({
+                success: false,
+                message: 'Failed to get all code redeem statistik',
+                error: error.message
+            });
+        }
+    }
 }
 
 module.exports = new redeemController();
