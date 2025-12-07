@@ -27,10 +27,32 @@ class detailVideoMapelService {
         };
     }
     async getDetailVideoMapelByIdSubMapel(id_sub_mapel_detail, id_users) {
-        const [rows] = await pool.query(
-            'SELECT * FROM detail_video_mapel left join sub_mapel on detail_video_mapel.id_sub_mapel = sub_mapel.id_sub_mapel left join mapel on sub_mapel.id_mapel = mapel.id_mapel WHERE detail_video_mapel.id_sub_mapel_detail = ? order by detail_video_mapel.id_detail_video_mapel asc',
-            [id_sub_mapel_detail]
-        );
+        let query;
+        let params;
+
+        if (id_users === 'mapel') {
+            query = `
+                SELECT * 
+                FROM detail_video_mapel
+                LEFT JOIN sub_mapel ON detail_video_mapel.id_sub_mapel = sub_mapel.id_sub_mapel
+                LEFT JOIN mapel ON sub_mapel.id_mapel = mapel.id_mapel
+                WHERE detail_video_mapel.id_sub_mapel = ?
+                ORDER BY detail_video_mapel.id_detail_video_mapel ASC
+            `;
+            params = [id_sub_mapel_detail];
+        } else {
+            query = `
+                SELECT * 
+                FROM detail_video_mapel
+                LEFT JOIN sub_mapel ON detail_video_mapel.id_sub_mapel = sub_mapel.id_sub_mapel
+                LEFT JOIN mapel ON sub_mapel.id_mapel = mapel.id_mapel
+                WHERE detail_video_mapel.id_sub_mapel_detail = ?
+                ORDER BY detail_video_mapel.id_detail_video_mapel ASC
+            `;
+            params = [id_sub_mapel_detail];
+        }
+
+        const [rows] = await pool.query(query, params);
 
         // Hitung tanggal saat ini di JavaScript (format MySQL)
         const now = new Date();
