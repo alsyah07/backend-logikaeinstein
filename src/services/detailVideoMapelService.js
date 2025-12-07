@@ -28,7 +28,7 @@ class detailVideoMapelService {
     }
     async getDetailVideoMapelByIdSubMapel(id_sub_mapel_detail, id_users) {
         const [rows] = await pool.query(
-            'SELECT * FROM detail_video_mapel left join sub_mapel on detail_video_mapel.id_sub_mapel = sub_mapel.id_sub_mapel left join mapel on sub_mapel.id_mapel = mapel.id_mapel WHERE detail_video_mapel.id_sub_mapel_detail = ? order by detail_video_mapel.id_detail_video_mapel asc',
+            'SELECT * FROM detail_video_mapel left join sub_mapel on detail_video_mapel.id_sub_mapel = sub_mapel.id_sub_mapel left join mapel on sub_mapel.id_mapel = mapel.id_mapel WHERE sub_mapel.id_sub_mapel = ? order by detail_video_mapel.id_detail_video_mapel asc',
             [id_sub_mapel_detail]
         );
 
